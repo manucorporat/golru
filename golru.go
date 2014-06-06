@@ -1,5 +1,5 @@
 // A simple LRU cache for storing documents ([]byte). When the size maximum is reached, items are evicted
-// starting with the least recently used. This data structure is goroutine-safe (it has a lock around all
+// with an approximated LRU (least recently used) policy. This data structure is goroutine-safe (it has a lock around all
 // operations).
 package golru
 
@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	LRUSamples int = 5
+	DefaultLRUSamples int = 5
 )
 
 type (
@@ -27,13 +27,11 @@ type (
 	}
 )
 
-// Creates a new Cache with a maximum size of items
-func New(capacity int) *Cache {
-	var samples int
-	if capacity < LRUSamples {
-		samples = capacity
-	} else {
-		samples = LRUSamples
+// Creates a new Cache with a maximum size of items and the number of samples used to evict the LRU entries.
+// If samples <= 0, DefaultLRUSamples is used. 5 by default.
+func New(capacity, samples int) *Cache {
+	if samples <= 0 {
+		samples = DefaultLRUSamples
 	}
 	return &Cache{
 		Capacity: capacity,
@@ -74,8 +72,7 @@ func (c *Cache) Flush() {
 	c.index = 0
 }
 
-// Get retrieves a value from the cache and returns the value and an indicator boolean to show whether it was
-// present.
+// Get retrieves a value from the cache, it would return nil is the entry is not present
 func (c *Cache) Get(key string) []byte {
 	c.Lock()
 	defer func() {
@@ -99,9 +96,6 @@ func (c *Cache) Del(key string) {
 	delete(c.table, key)
 }
 
-// If the cache is over capacity, clear elements (starting at the end of the list) until it is back under
-// capacity. Note that this method is not threadsafe (it should only be called from other methods which
-// already hold the lock).
 func (c *Cache) trim() {
 	toremove := len(c.table) - c.Capacity
 	if toremove == 1 {

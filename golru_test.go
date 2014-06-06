@@ -11,7 +11,7 @@ import (
 )
 
 func TestSimpleSetAndGet(t *testing.T) {
-	c := golru.New(2)
+	c := golru.New(2, -1)
 	c.Set("key1", []byte("hi"))
 	if string(c.Get("key1")) != "hi" || c.Len() != 1 {
 		t.FailNow()
@@ -19,7 +19,7 @@ func TestSimpleSetAndGet(t *testing.T) {
 }
 
 func TestMultipleSetAndGet(t *testing.T) {
-	c := golru.New(2)
+	c := golru.New(2, -1)
 	c.Set("key1", []byte("hi"))
 	c.Set("key1", []byte("bye"))
 	if string(c.Get("key1")) != "bye" || c.Len() != 1 {
@@ -36,7 +36,7 @@ func TestMultipleSetAndGet(t *testing.T) {
 }
 
 func TestMultipleSetDeleteAndGet(t *testing.T) {
-	c := golru.New(2)
+	c := golru.New(2, -1)
 	c.Set("key1", []byte("hi"))
 	c.Del("key1")
 
@@ -51,7 +51,7 @@ func TestMultipleSetDeleteAndGet(t *testing.T) {
 
 func TestMultipleBatch(t *testing.T) {
 	size := 1000
-	c := golru.New(size)
+	c := golru.New(size, -1)
 	for i := 0; i < size; i++ {
 		key := strconv.Itoa(i)
 		c.Set(key, []byte("A"+key))
@@ -77,7 +77,7 @@ func TestMultipleBatch(t *testing.T) {
 }
 
 func TestMultipleCaped(t *testing.T) {
-	c := golru.New(2)
+	c := golru.New(2, -1)
 	c.Set("key", []byte("doc0"))
 	c.Set("key1", []byte("doc1"))
 	c.Set("key2", []byte("doc2"))
@@ -104,7 +104,7 @@ func TestMultipleCaped(t *testing.T) {
 
 func TestMultipleCaped100(t *testing.T) {
 	size := 1000
-	c := golru.New(100)
+	c := golru.New(100, -1)
 	for i := 0; i < size; i++ {
 		key := strconv.Itoa(i)
 		c.Set(key, []byte("A"+key))
@@ -115,22 +115,22 @@ func TestMultipleCaped100(t *testing.T) {
 }
 
 func BenchmarkSetFullSize(b *testing.B) {
-	c := golru.New(b.N)
+	c := golru.New(b.N, -1)
 	RunSet(c, b)
 }
 
 func BenchmarkSetHalfSize(b *testing.B) {
-	c := golru.New(b.N / 2)
+	c := golru.New(b.N/2, -1)
 	RunSet(c, b)
 }
 
 func BenchmarkSet10000(b *testing.B) {
-	c := golru.New(10000)
+	c := golru.New(10000, -1)
 	RunSet(c, b)
 }
 
 func BenchmarkGetFullSize(b *testing.B) {
-	c := golru.New(b.N)
+	c := golru.New(b.N, -1)
 	RunGet(c, b)
 }
 
